@@ -1,0 +1,50 @@
+version: '3.8'
+name: url-shortener
+
+services:
+  app:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    ports:
+      - "3000:3000"
+    volumes:
+      - ../src:/app/src
+      - ../.env:/app/.env
+    environment:
+      - NODE_ENV=development
+    depends_on:
+      - mysql
+      - redis
+    networks:
+      - url-shortener-network
+
+  mysql:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: url_shortener
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+      - ../scripts:/docker-entrypoint-initdb.d
+    networks:
+      - url-shortener-network
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - url-shortener-network
+
+volumes:
+  mysql-data:
+  redis-data:
+
+networks:
+  url-shortener-network:
+    driver: bridge
